@@ -1,8 +1,7 @@
 package com.example.endlessrunner
 
-import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
+import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
@@ -13,15 +12,12 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Rectangle
-import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.utils.ScreenUtils
 
-/** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms.  */
-class MyGdxGames : ApplicationAdapter() {
+class GameScreen(val game: MyGdxGame) : Screen {
     private var batch: SpriteBatch? = null
 
     lateinit var shapeRenderer: ShapeRenderer
-    lateinit var cube: Rectangle
+    lateinit var player: Rectangle
 
     lateinit var backgroundTexture: Texture
     var backgroundY1 = 0f
@@ -35,32 +31,32 @@ class MyGdxGames : ApplicationAdapter() {
     private lateinit var gameOverFont: BitmapFont
     private val glyphLayout = GlyphLayout()
 
-    override fun create() {
+    override fun show() {
         batch = SpriteBatch()
         shapeRenderer = ShapeRenderer()
 
         backgroundTexture = Texture(Gdx.files.internal("background.png"))
 
-        cube = Rectangle(Gdx.graphics.width / 2f - 37.5f, 200f, 75f, 175f)
+        player = Rectangle(Gdx.graphics.width / 2f - 37.5f, 200f, 75f, 175f)
 
         backgroundY1 = 0f
         backgroundY2 = backgroundTexture.height.toFloat()
 
         obstacleTimer = 0f
 
-        val generator = FreeTypeFontGenerator(Gdx.files.internal("K2D/K2D-Bold.ttf"))
+        val generator = FreeTypeFontGenerator(Gdx.files.internal("fancake/Fancake.ttf"))
         val parameter = FreeTypeFontGenerator.FreeTypeFontParameter()
         parameter.size = 50
         gameOverFont = generator.generateFont(parameter)
     }
 
-    override fun render() {
+    override fun render(delta: Float) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
         if (!isGameOver) {
-            backgroundY1 -= 300 * Gdx.graphics.deltaTime
-            backgroundY2 -= 300 * Gdx.graphics.deltaTime
+            backgroundY1 -= 300 * delta
+            backgroundY2 -= 300 * delta
 
             if (backgroundY1 + backgroundTexture.height <= 0) {
                 backgroundY1 = backgroundY2 + backgroundTexture.height
@@ -76,12 +72,12 @@ class MyGdxGames : ApplicationAdapter() {
 
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
             shapeRenderer.setColor(Color.CYAN)
-            shapeRenderer.rect(cube.x, cube.y, cube.width, cube.height)
+            shapeRenderer.rect(player.x, player.y, player.width, player.height)
             shapeRenderer.end()
 
-            handleInput()
+            handlePlayerInput()
 
-            obstacleTimer += Gdx.graphics.deltaTime
+            obstacleTimer += delta
             if (obstacleTimer > obstacleSpawnTime) {
                 spawnObstacle()
                 obstacleTimer = 0f
@@ -101,13 +97,21 @@ class MyGdxGames : ApplicationAdapter() {
         }
     }
 
-    private fun handleInput() {
+    override fun resize(width: Int, height: Int) {}
+
+    override fun pause() {}
+
+    override fun resume() {}
+
+    override fun hide() {}
+
+    private fun handlePlayerInput() {
         if (Gdx.input.isTouched()) {
             val touchX = Gdx.input.x.toFloat()
 
-            cube.x = touchX - cube.width / 2
+            player.x = touchX - player.width / 2
 
-            cube.x = MathUtils.clamp(cube.x, 100f, Gdx.graphics.width - cube.width - 100f)
+            player.x = MathUtils.clamp(player.x, 100f, Gdx.graphics.width - player.width - 100f)
         }
     }
 
@@ -138,7 +142,7 @@ class MyGdxGames : ApplicationAdapter() {
 
     private fun checkCollisions() {
         for (obstacle in obstacles) {
-            if (cube.overlaps(obstacle.getRectangle())) {
+            if (player.overlaps(obstacle.getRectangle())) {
                 isGameOver = true
                 println("Collision détectée ! Game Over.")
             }
@@ -147,8 +151,6 @@ class MyGdxGames : ApplicationAdapter() {
 
     private fun displayGameOverMessage() {
         batch?.begin()
-        val gameOverMessage = "Game Over!"
-        val restartMessage = "Tap to Restart"
 
         val lineHeight = glyphLayout.height
         val boxX = Gdx.graphics.width / 2 - 200
@@ -156,13 +158,13 @@ class MyGdxGames : ApplicationAdapter() {
         val boxWidth = 400
         val boxHeight = 200
 
-        glyphLayout.setText(gameOverFont, gameOverMessage)
+        glyphLayout.setText(gameOverFont, "Game Over!")
         var textX = boxX + (boxWidth - glyphLayout.width) / 2f
         var textY = boxY + boxHeight / 2f + lineHeight / 2f
         gameOverFont.draw(batch, glyphLayout, textX, textY)
 
         boxY = Gdx.graphics.height / 2 - 200
-        glyphLayout.setText(gameOverFont, restartMessage)
+        glyphLayout.setText(gameOverFont, "Tap to Restart")
         textX = boxX + (boxWidth - glyphLayout.width) / 2f
         textY = boxY + boxHeight / 2f + lineHeight / 2f
         gameOverFont.draw(batch, glyphLayout, textX, textY)
@@ -173,7 +175,7 @@ class MyGdxGames : ApplicationAdapter() {
     private fun restartGame() {
         isGameOver = false
         obstacles.clear()
-        cube.setPosition(Gdx.graphics.width / 2f - 37.5f, 200f)
+        player.setPosition(Gdx.graphics.width / 2f - 37.5f, 200f)
         obstacleTimer = 0f
     }
 

@@ -5,6 +5,5 @@ dependencies {
   api "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-
   api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
 }

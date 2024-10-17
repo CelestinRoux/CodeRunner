@@ -3,7 +3,7 @@ package com.example.endlessrunner.android
 import android.os.Bundle
 import com.badlogic.gdx.backends.android.AndroidApplication
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
-import com.example.endlessrunner.MyGdxGames
+import com.example.endlessrunner.MyGdxGame
 
 /** Launches the Android application.  */
 class AndroidLauncher : AndroidApplication() {
@@ -11,6 +11,6 @@ class AndroidLauncher : AndroidApplication() {
         super.onCreate(savedInstanceState)
         val configuration = AndroidApplicationConfiguration()
         configuration.useImmersiveMode = true // Recommended, but not required.
-        initialize(MyGdxGames(), configuration)
+        initialize(MyGdxGame(), configuration)
     }
 }
