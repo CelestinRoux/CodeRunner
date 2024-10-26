@@ -1,0 +1,20 @@
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+varying vec2 v_texCoords;
+uniform sampler2D u_texture;
+
+void main() {
+    vec4 color = vec4(0.0);
+    vec2 texOffset = 1.0 / vec2(textureSize(u_texture, 0)); // taille de la texture
+
+    // Appliquer un flou simple en échantillonnant plusieurs pixels autour du pixel central
+    for(int x = -1; x <= 1; x++) {
+        for(int y = -1; y <= 1; y++) {
+            color += texture2D(u_texture, v_texCoords + vec2(x, y) * texOffset);
+        }
+    }
+
+    gl_FragColor = color / 9.0; // Moyenne des couleurs
+}

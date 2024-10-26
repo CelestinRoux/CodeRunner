@@ -2,11 +2,22 @@ package com.example.endlessrunner
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.actions.Actions
+import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
+import com.badlogic.gdx.utils.viewport.ScreenViewport
+import javax.swing.plaf.basic.BasicSliderUI.ActionScroller
 
 class MainMenuScreen(val game: MyGdxGame) : Screen {
 
@@ -14,6 +25,10 @@ class MainMenuScreen(val game: MyGdxGame) : Screen {
     private lateinit var titleFont: BitmapFont
     private lateinit var buttonFont: BitmapFont
     private val glyphLayout = GlyphLayout()
+    private lateinit var stage: Stage
+    private lateinit var textButtonStyle: TextButtonStyle
+    private lateinit var button: TextButton
+    private lateinit var blinkAction : RepeatAction
 
     override fun show() {
         batch = SpriteBatch()
@@ -25,6 +40,34 @@ class MainMenuScreen(val game: MyGdxGame) : Screen {
         parameter.size = 75
         buttonFont = generator.generateFont(parameter)
 
+
+
+        stage = Stage(ScreenViewport())
+        Gdx.input.inputProcessor = stage
+
+        textButtonStyle = TextButtonStyle().apply {
+            font = buttonFont
+            fontColor = Color.WHITE
+        }
+
+        button = TextButton("Start Game", textButtonStyle)
+
+        button.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                game.setScreen(GameScreen(game))
+            }
+        })
+
+
+        blinkAction = Actions.forever(
+            Actions.sequence(
+                Actions.run { button.style.fontColor = Color.YELLOW },
+                Actions.delay(0.5f),
+                Actions.run { button.style.fontColor = Color.WHITE },
+                Actions.delay(0.5f)
+            )
+        )
+        button.addAction(blinkAction)
     }
 
     override fun render(delta: Float) {
@@ -39,27 +82,26 @@ class MainMenuScreen(val game: MyGdxGame) : Screen {
         val boxWidth = 400
         val boxHeight = 200
 
-        glyphLayout.setText(titleFont, "Endless Runner Game")
+        glyphLayout.setText(titleFont, "Code Runner")
         var textX = boxX + (boxWidth - glyphLayout.width) / 2f
         var textY = boxY + boxHeight / 2f + lineHeight / 2f
         titleFont.draw(batch, glyphLayout, textX, textY)
+        glyphLayout.setText(titleFont, "Escape The Virus")
+        textX = boxX + (boxWidth - glyphLayout.width) / 2f
+        textY = boxY + boxHeight / 2f + lineHeight / 2f - 125f
         titleFont.draw(batch, glyphLayout, textX, textY)
 
-        boxY = Gdx.graphics.height / 2 - 400
-        glyphLayout.setText(buttonFont, "Start Game")
-        textX = boxX + (boxWidth - glyphLayout.width) / 2f
-        textY = boxY + boxHeight / 2f + lineHeight / 2f
-        buttonFont.draw(batch, glyphLayout, textX, textY)
-        buttonFont.draw(batch, glyphLayout, textX, textY)
+        button.setPosition(Gdx.graphics.width / 2f - button.width / 2, Gdx.graphics.height / 2f - button.height / 2 - 300)
+        stage.addActor(button)
 
         batch.end()
 
-        if (Gdx.input.isTouched) {
-            game.setScreen(GameScreen(game))
-        }
+        stage.act(delta)
+        stage.draw()
     }
 
-    override fun resize(width: Int, height: Int) {}
+    override fun resize(width: Int, height: Int) {
+    }
 
     override fun pause() {}
 
@@ -70,6 +112,6 @@ class MainMenuScreen(val game: MyGdxGame) : Screen {
     override fun dispose() {
         batch.dispose()
         titleFont.dispose()
-        buttonFont.dispose()
+        stage.dispose()
     }
 }
